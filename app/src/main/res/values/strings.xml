@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Bookshelf App</string>
+    <string name="loading_failed">Failed to load</string>
+    <string name="retry">Retry</string>
+    <string name="loading">Loading</string>
+    <string name="try_again">Try Again</string>
+    <string name="homepage">Go Back To Search Page</string>
+    <string name="publication_not_available">Publication date not available</string>
+    <string name="description_not_available">Description not available</string>
+    <string name="home_search_description">Search the World\'s most popular books</string>
+</resources>
