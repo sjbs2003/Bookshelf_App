@@ -45,11 +45,22 @@ import com.example.bookshelfapp.model.ImageLinks
 import com.example.bookshelfapp.model.Item
 import com.example.bookshelfapp.model.VolumeInfo
 
+
 @Composable
 fun ResultScreen(
-        
+    bookshelfUiState: BookShelfUiState,
+    tryAgain: () -> Unit,
+    homepage: () -> Unit,
 ) {
-    
+    when(bookshelfUiState){
+        is BookShelfUiState.Success -> BookshelfLazyColumn(itemList = bookshelfUiState.item.items)
+        is BookShelfUiState.Loading -> LoadingScreen()
+        is BookShelfUiState.Error -> ErrorScreen(
+            message = bookshelfUiState.message,
+            tryAgain = tryAgain,
+            homepage = homepage
+        )
+    }
 }
 
 @Composable
@@ -68,12 +79,13 @@ fun LoadingScreen(modifier: Modifier = Modifier) {
 @Composable
 fun ErrorScreen(
     modifier: Modifier = Modifier,
+    message: String,
     tryAgain: () -> Unit,
     homepage: () -> Unit
 ) {
     Box(modifier = modifier
-        .fillMaxSize()
-        .background(Color.Black), Alignment.Center) {
+        .fillMaxSize(),
+        Alignment.Center) {
         Column(
             modifier = modifier,
             verticalArrangement = Arrangement.Center,
@@ -84,7 +96,7 @@ fun ErrorScreen(
                 contentDescription = stringResource(id = R.string.loading_failed)
             )
             Text(
-                text = stringResource(id = R.string.loading_failed),
+                text = message,
                 color = MaterialTheme.colorScheme.error,
                 modifier = modifier.padding(16.dp)
             )
@@ -93,7 +105,7 @@ fun ErrorScreen(
 
             Text(
                 text = stringResource(id = R.string.try_again),
-                color = MaterialTheme.colorScheme.onSecondary,
+                color = MaterialTheme.colorScheme.onSurface,
                 modifier = modifier.clickable { tryAgain() }
             )
 
@@ -101,7 +113,7 @@ fun ErrorScreen(
 
             Text(
                 text = stringResource(id = R.string.homepage),
-                color = MaterialTheme.colorScheme.onSecondary,
+                color = MaterialTheme.colorScheme.onSurface,
                 modifier = modifier.clickable { homepage() }
             )
         }
@@ -197,7 +209,7 @@ fun BookshelfCard(
 }
 
 @Composable
-fun BookshelfLazy(
+fun BookshelfLazyColumn(
     itemList: List<Item>,
     modifier: Modifier = Modifier
 ) {
@@ -227,7 +239,7 @@ fun BookshelfLazy(
 @Composable
 @Preview
 fun BookshelfLazyPreview() {
-    BookshelfLazy(
+    BookshelfLazyColumn(
         itemList = listOf(
             Item(
                 id = 1.toString(),
@@ -281,6 +293,7 @@ fun ErrorScreenPreview() {
     ErrorScreen(
         modifier = Modifier
             .background(Color(0xFF000000)), // Add a background color
+        message = "Error message",
         tryAgain = {}, // Empty lambda for preview
         homepage = {}  // Empty lambda for preview
     )
