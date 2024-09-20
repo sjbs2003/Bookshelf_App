@@ -33,7 +33,7 @@ class BookShelfViewModel(private val bookshelfRepository: Repository) : ViewMode
     private val _bookShelfUiState = MutableStateFlow<BookShelfUiState>(BookShelfUiState.Loading)
     val bookShelfUiState: StateFlow<BookShelfUiState> = _bookShelfUiState.asStateFlow()
 
-    private var searchType: String by mutableStateOf("intitle") // Default search type
+    var searchType: String by mutableStateOf("intitle") // Default search type
 
     private var currentPage: Int = 0
     private val itemsPerPage = 10
@@ -61,7 +61,7 @@ class BookShelfViewModel(private val bookshelfRepository: Repository) : ViewMode
         fetchBooks()
     }
 
-    private fun fetchBooks() {
+    fun fetchBooks() {
         viewModelScope.launch {
             try {
                 val response = bookshelfRepository.searchBooks(

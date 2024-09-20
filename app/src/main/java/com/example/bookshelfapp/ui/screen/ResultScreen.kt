@@ -1,6 +1,5 @@
 package com.example.bookshelfapp.ui.screen
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -18,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DividerDefaults
@@ -35,7 +35,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -49,11 +48,15 @@ import com.example.bookshelfapp.model.VolumeInfo
 @Composable
 fun ResultScreen(
     bookshelfUiState: BookShelfUiState,
+    viewModel: BookShelfViewModel,
     tryAgain: () -> Unit,
     homepage: () -> Unit,
 ) {
     when(bookshelfUiState){
-        is BookShelfUiState.Success -> BookshelfLazyColumn(itemList = bookshelfUiState.item.items)
+        is BookShelfUiState.Success -> BookshelfLazyColumn(
+            itemList = bookshelfUiState.items,
+            loadNextPage = { viewModel.loadNextPage() }
+        )
         is BookShelfUiState.Loading -> LoadingScreen()
         is BookShelfUiState.Error -> ErrorScreen(
             message = bookshelfUiState.message,
@@ -211,6 +214,7 @@ fun BookshelfCard(
 @Composable
 fun BookshelfLazyColumn(
     itemList: List<Item>,
+    loadNextPage: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -221,80 +225,20 @@ fun BookshelfLazyColumn(
         ),
         verticalArrangement = Arrangement.spacedBy(15.dp)
     ) {
-        items(items = itemList, key = { item -> item.id }) {
-
-            Log.d("Image URL", "Thumbnail URL: ${it.volumeInfo.imageLinks}")
+        items(items = itemList, key = { item -> item.id }) { item->
             BookshelfCard(
-                image = it.volumeInfo.imageLinks,
-                itemInfo = it.volumeInfo
+                image = item.volumeInfo.imageLinks,
+                itemInfo = item.volumeInfo
             )
+        }
+        item {
+            Button(
+                onClick = loadNextPage,
+                modifier = modifier.fillMaxWidth()
+            ) {
+                Text("Load Here")
+            }
         }
     }
 }
 
-
-
-
-
-@Composable
-@Preview
-fun BookshelfLazyPreview() {
-    BookshelfLazyColumn(
-        itemList = listOf(
-            Item(
-                id = 1.toString(),
-                volumeInfo = VolumeInfo(
-                    title = "The Lord of the Rings",
-                    authors = listOf("J. R. R. Tolkien"),
-                    publishedDate = "1954-08-08",
-                    imageLinks = ImageLinks(thumbnail = "https://via.placeholder.com/150")
-                )
-            ),
-            Item(
-                id = 2.toString(),
-                volumeInfo = VolumeInfo(
-                    title = "Pride and Prejudice",
-                    authors = listOf("Jane Austen"),
-                    publishedDate = "1813-01-28",
-                    imageLinks = ImageLinks(thumbnail = "https://via.placeholder.com/150/00FFFF")
-                )
-            )
-        )
-    )
-}
-
-@Composable
-@Preview
-fun BookCardPreview() {
-    BookshelfCard(
-        image = ImageLinks(thumbnail = "https://via.placeholder.com/150"), // Placeholder image
-        itemInfo = VolumeInfo(
-            title = "The Lord of the Rings",
-            authors = listOf("J. R. R. Tolkien"),
-            publishedDate = "1954-08-08",
-            description = "An epic high-fantasy trilogy written by English philologist and University of Oxford professor J. R. R. Tolkien. The story began as a sequel to Tolkien's 1937 fantasy novel The Hobbit, but eventually developed into a much larger work."
-        )
-    )
-}
-
-@Composable
-@Preview
-fun LoadingScreenPreview() {
-    LoadingScreen(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFF000000)) // Add a background color
-    )
-}
-
-@Composable
-@Preview
-fun ErrorScreenPreview() {
-    ErrorScreen(
-        modifier = Modifier
-            .background(Color(0xFF000000)), // Add a background color
-        message = "Error message",
-        tryAgain = {}, // Empty lambda for preview
-        homepage = {}  // Empty lambda for preview
-    )
-}

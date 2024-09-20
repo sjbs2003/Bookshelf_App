@@ -7,10 +7,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -28,10 +32,8 @@ import com.example.bookshelfapp.R
 
 @Composable
 fun SearchScreen(
-    value: String,
-    onValueChange: (String) -> Unit,
+    viewModel: BookShelfViewModel,
     onSearch: () -> Unit,
-    clearUserInput: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val focusManager = LocalFocusManager.current
@@ -44,7 +46,7 @@ fun SearchScreen(
                 interactionSource = interactionSource,
                 indication = null
             ) { focusManager.clearFocus() },
-        Alignment.Center
+        contentAlignment = Alignment.Center
     ) {
         Column(
             verticalArrangement = Arrangement.Center,
@@ -60,10 +62,29 @@ fun SearchScreen(
 
             SearchBar(
                 placeholder = R.string.search_books,
-                value = value,
-                onValueChange = onValueChange,
+                value = viewModel.userInput,
+                onValueChange = { viewModel.updateUserInput(it) },
                 onSearch = onSearch,
-                clearUserInput = clearUserInput)
+                clearUserInput = { viewModel.clearUserInput()}
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text("Search Type: ${viewModel.searchType}")
+            Row(
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Button(onClick = { viewModel.searchType = "intitle" }) {
+                    Text("Title")
+                }
+                Button(onClick = { viewModel.searchType = "inauthor" }) {
+                    Text("Author")
+                }
+                Button(onClick = { viewModel.searchType = "subject" }) {
+                    Text("Subject")
+                }
+            }
         }
     }
 }

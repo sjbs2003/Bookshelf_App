@@ -9,6 +9,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.example.bookshelfapp.ui.screen.BookShelfViewModel
@@ -22,7 +24,7 @@ import com.example.bookshelfapp.ui.screen.SearchScreen
 
 
 enum class BookShelfScreen{
-    Search , Result
+    Search, Result
 }
 
 
@@ -35,7 +37,7 @@ fun BooksShelfApp(
 
     Scaffold(
         topBar = { TopAppBar() }
-    ) { it ->
+    ) {
         Surface(
             modifier = modifier
                 .fillMaxSize()
@@ -47,23 +49,25 @@ fun BooksShelfApp(
             ) {
                 composable(route = BookShelfScreen.Search.name){
                     SearchScreen(
-                        value = bookshelfViewModel.userInput,
-                        onValueChange = { bookshelfViewModel.updateUserInput(it) },
+                        viewModel = bookshelfViewModel,
                         onSearch = {
                             navController.navigate(route = BookShelfScreen.Result.name)
-                            bookshelfViewModel.getBooksData()
+
                         },
-                        clearUserInput = { bookshelfViewModel.clearUserInput() })
+                    )
                 }
 
                 composable(route = BookShelfScreen.Result.name){
+                    val bookShelfUiState by bookshelfViewModel.bookShelfUiState.collectAsState()
                     ResultScreen(
-                        bookshelfUiState = bookshelfViewModel.bookShelfUiState,
+                        bookshelfUiState = bookShelfUiState,
+                        viewModel = bookshelfViewModel,
                         tryAgain = {
-                            bookshelfViewModel.getBooksData()
+                            bookshelfViewModel.searchBooks()
                         },
                         homepage = {
-                            navController.navigate(route = BookShelfScreen.Search.name)
+                            bookshelfViewModel.clearUserInput()
+                            navController.navigateUp()
                         }
                     )
                 }
