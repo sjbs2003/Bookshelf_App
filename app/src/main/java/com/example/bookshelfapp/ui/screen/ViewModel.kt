@@ -61,7 +61,7 @@ class BookShelfViewModel(private val bookshelfRepository: Repository) : ViewMode
         fetchBooks()
     }
 
-    fun fetchBooks() {
+    private fun fetchBooks() {
         viewModelScope.launch {
             try {
                 val response = bookshelfRepository.searchBooks(
