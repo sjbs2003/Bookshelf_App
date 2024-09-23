@@ -71,17 +71,18 @@ data class PdfInfo(
 data class BookshelfResponse(
     val kind: String,
     val items: List<Bookshelf>
-)
+){
+    @Serializable
+    data class Bookshelf(
+        val kind: String,
+        val id: Int,
+        val selfLink: String,
+        val title: String,
+        val access: String,
+        val updated: String,
+        val created: String,
+        val volumeCount: Int,
+        val volumesLastUpdated: String
+    )
 
-@Serializable
-data class Bookshelf(
-    val kind: String,
-    val id: Int,
-    val selfLink: String,
-    val title: String,
-    val access: String,
-    val updated: String,
-    val created: String,
-    val volumeCount: Int,
-    val volumesLastUpdated: String
-)
+}
