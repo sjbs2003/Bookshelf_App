@@ -159,16 +159,12 @@ class BookShelfViewModel(private val bookshelfRepository: Repository) : ViewMode
             try {
                 bookshelfRepository.removeFromBookshelf(shelf, volumeId)
                 // Handle successful removal (e.g., show a success message)
-                _bookShelfUiState
+                _bookShelfUiState.value = BookShelfUiState.OperationSuccess
             } catch (e: Exception) {
                 _bookShelfUiState.value =  BookShelfUiState.Error("Error removing book from bookshelf: ${e.message}")
             }
         }
     }
-
-
-
-
 
     companion object {
         val factory: ViewModelProvider.Factory = viewModelFactory {
