@@ -1,6 +1,5 @@
 package com.example.bookshelfapp.ui.screen
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -25,6 +24,7 @@ sealed interface BookShelfUiState { // for searching books
     data class Success(val items: List<Item>) : BookShelfUiState
     data object Loading : BookShelfUiState
     data class Error(val message: String) : BookShelfUiState
+    data object OperationSuccess : BookShelfUiState
 }
 
 sealed interface BookshelvesUiState{ // to handle the state of bookshelves
@@ -129,6 +129,46 @@ class BookShelfViewModel(private val bookshelfRepository: Repository) : ViewMode
             }
         }
     }
+
+    fun getBookshelfVolumes(userId: String, shelf: String){
+        viewModelScope.launch {
+            _bookShelfUiState.value = BookShelfUiState.Loading
+            try{
+                val volumes = bookshelfRepository.getBookshelfVolumes(userId,shelf)
+                _bookShelfUiState.value = BookShelfUiState.Success(volumes.items)
+            }catch (e: Exception){
+                _bookShelfUiState.value = BookShelfUiState.Error("Error fetching bookshelf volumes: ${e.message}")
+            }
+        }
+    }
+
+    fun addToBookshelf(shelf: String, volumeId: String){
+        viewModelScope.launch {
+            try {
+                _bookShelfUiState.value = BookShelfUiState.Loading
+                bookshelfRepository.addToBookshelf(shelf, volumeId)
+                _bookShelfUiState.value = BookShelfUiState.OperationSuccess
+            }catch (e:Exception){
+                _bookShelfUiState.value = BookShelfUiState.Error("Error adding book to bookshelf: ${e.message}")
+            }
+        }
+    }
+
+    fun removeFromBookshelf(shelf: String, volumeId: String) {
+        viewModelScope.launch {
+            try {
+                bookshelfRepository.removeFromBookshelf(shelf, volumeId)
+                // Handle successful removal (e.g., show a success message)
+                _bookShelfUiState
+            } catch (e: Exception) {
+                _bookShelfUiState.value =  BookShelfUiState.Error("Error removing book from bookshelf: ${e.message}")
+            }
+        }
+    }
+
+
+
+
 
     companion object {
         val factory: ViewModelProvider.Factory = viewModelFactory {
