@@ -50,7 +50,6 @@ class BookShelfViewModel(private val bookshelfRepository: Repository) : ViewMode
     val bookshelvesUiState: StateFlow<BookshelvesUiState> = _bookshelvesUiState.asStateFlow()
 
     var searchType: String by mutableStateOf("intitle") // Default search type
-        private set
 
     private var currentPage: Int = 0
     private val itemsPerPage = 10
@@ -165,6 +164,8 @@ class BookShelfViewModel(private val bookshelfRepository: Repository) : ViewMode
             }
         }
     }
+
+
 
     companion object {
         val factory: ViewModelProvider.Factory = viewModelFactory {
