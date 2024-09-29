@@ -33,7 +33,9 @@ data class VolumeInfo(
 data class ImageLinks(
     val smallThumbnail: String? = null,
     val thumbnail: String
-)
+){
+
+}
 
 @Serializable
 data class SaleInfo(

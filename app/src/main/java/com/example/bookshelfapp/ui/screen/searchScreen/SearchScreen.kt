@@ -159,14 +159,15 @@ fun SearchResultItem(item: Item) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(4.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
     ) {
         Row(
             modifier = Modifier.padding(16.dp)
         ) {
             AsyncImage(
                 model = ImageRequest.Builder(context = LocalContext.current)
-                    .data(item.volumeInfo.imageLinks.thumbnail)
+                    .data(item.volumeInfo.imageLinks.thumbnail.replace("http", "https"))
                     .crossfade(true)
                     .build(),
                 error = painterResource(R.drawable.ic_broken_image),
