@@ -1,6 +1,7 @@
 package com.example.bookshelfapp.ui.screen
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -12,20 +13,22 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -33,6 +36,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
@@ -52,26 +56,26 @@ import com.example.bookshelfapp.viewModel.SearchViewModel
 @Composable
 fun SearchScreen(
     viewModel: SearchViewModel,
+    onBookClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val focusManager = LocalFocusManager.current
     val interactionSource = remember { MutableInteractionSource() } // disabling animation when button is clicked
     val searchUiState by viewModel.searchUiState.collectAsState()
 
-    Box(
+    Column (
         modifier = modifier
             .fillMaxSize()
-            .padding(top = 40.dp)
             .clickable(
                 interactionSource = interactionSource,
                 indication = null
-            ) { focusManager.clearFocus() },
-        contentAlignment = Alignment.TopStart
+            ) { focusManager.clearFocus() }
     ) {
         Column(
-            modifier = modifier.padding(top = 20.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+            modifier = modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surface)
+                .padding(top = 16.dp)
         ) {
             SearchBar(
                 placeholder = R.string.search_books,
@@ -80,10 +84,10 @@ fun SearchScreen(
                 clearUserInput = { viewModel.clearUserInput() }
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             Row(
-                horizontalArrangement = Arrangement.SpaceEvenly,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 SearchTypeButton("Title", viewModel.searchType == "title") {
@@ -99,23 +103,33 @@ fun SearchScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Display search results
-            val searchState = viewModel.searchUiState.collectAsState()
-            when (val state = searchState.value) {
-                is SearchUiState.Error -> {
-                    Text(
-                        text = (searchUiState as SearchUiState.Error).message,
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.padding(16.dp)
-                    )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background),
+                contentAlignment = Alignment.Center
+            ) {
+                when (val state = searchUiState) {
+                    is SearchUiState.Error -> {
+                        Text(
+                            text = state.message,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
+                    is SearchUiState.Loading -> {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(48.dp),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    is SearchUiState.Success -> {
+                        SearchResults(
+                            items = state.items,
+                            onBookClick = onBookClick
+                        )
+                    }
                 }
-                is SearchUiState.Loading -> {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(48.dp),
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-                is SearchUiState.Success -> SearchResults(state.items)
             }
         }
     }
@@ -146,62 +160,83 @@ fun SearchBar(
     clearUserInput: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Row(
-        modifier = modifier,
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        OutlinedTextField(
-            value = value,
-            onValueChange = onValueChange,
-            placeholder = { Text(stringResource(placeholder)) },
-            singleLine = true,
-            shape = MaterialTheme.shapes.small,
-            leadingIcon = {
-                Icon(
-                    painter = painterResource(id = R.drawable.search_icon),
-                    contentDescription = null
-                )
-            },
-            trailingIcon = if (value.isNotEmpty()) {
-                {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        placeholder = { Text(stringResource(placeholder)) },
+        singleLine = true,
+        shape = MaterialTheme.shapes.medium,
+        leadingIcon = {
+            Icon(
+                painter = painterResource(id = R.drawable.search_icon),
+                contentDescription = "Search",
+                tint = MaterialTheme.colorScheme.primary
+            )
+        },
+        trailingIcon = if (value.isNotEmpty()) {
+            {
+                IconButton(onClick = clearUserInput) {
                     Icon(
                         painter = painterResource(id = R.drawable.clear_icon),
-                        contentDescription = null,
-                        modifier = modifier.clickable { clearUserInput() }
+                        contentDescription = "Clear search",
+                        tint = MaterialTheme.colorScheme.primary
                     )
                 }
-            } else null,
-            modifier = modifier.widthIn(max = 280.dp)
-        )
-    }
+            }
+        } else null,
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedContainerColor = MaterialTheme.colorScheme.surface,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+            focusedBorderColor = MaterialTheme.colorScheme.primary,
+            unfocusedBorderColor = MaterialTheme.colorScheme.outline
+        ),
+        modifier = modifier
+            .fillMaxWidth()
+            .heightIn(min = 56.dp)
+    )
 }
 
 @Composable
-fun SearchResults(items: List<Item>) {
+fun SearchResults(
+    items: List<Item>,
+    onBookClick: (String) -> Unit
+) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(items) { item ->
-            SearchResultItem(item)
+            SearchResultItem(
+                item = item,
+                onBookClick = onBookClick
+            )
         }
     }
 }
 
 @Composable
-fun SearchResultItem(item: Item) {
+fun SearchResultItem(
+    item: Item,
+    onBookClick: (String) -> Unit
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(4.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+            .clickable { onBookClick(item.id) },
+        shape = MaterialTheme.shapes.medium,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            // Book Cover
             AsyncImage(
                 model = ImageRequest.Builder(context = LocalContext.current)
                     .data(item.volumeInfo.imageLinks.thumbnail.replace("http", "https"))
@@ -212,24 +247,29 @@ fun SearchResultItem(item: Item) {
                 contentScale = ContentScale.Crop,
                 contentDescription = null,
                 modifier = Modifier
-                    .size(80.dp)
+                    .size(100.dp)
+                    .clip(MaterialTheme.shapes.small)
             )
 
-            Column(modifier = Modifier.padding(horizontal = 16.dp)){
+            // Book Info
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
                 Text(
                     text = item.volumeInfo.title,
                     style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = item.volumeInfo.authors.joinToString(", "),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
                     text = item.volumeInfo.publishedDate,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -242,6 +282,7 @@ fun SearchScreenPreview() {
     val viewModel: SearchViewModel = viewModel(factory = AppViewModelProvider.Factory)
     SearchScreen(
         viewModel = viewModel,
+        onBookClick = {},
         modifier = Modifier
     )
 }

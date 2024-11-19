@@ -23,19 +23,25 @@ data class VolumeInfo(
     val authors: List<String> = listOf("Author not available"),
     val publishedDate: String = "Publication date not available",
     val description: String = "Description not available",
+    val publisher: String? = null,
     val pageCount: Int? = null,
     val categories: List<String>? = null,
     val imageLinks: ImageLinks = ImageLinks(thumbnail = "Image not available"),
-    val language: String? = null
+    val language: String? = null,
+    val industryIdentifiers: List<IndustryIdentifier>? = null
+)
+
+@Serializable
+data class IndustryIdentifier(
+    val type: String,
+    val identifier: String
 )
 
 @Serializable
 data class ImageLinks(
     val smallThumbnail: String? = null,
     val thumbnail: String
-){
-
-}
+)
 
 @Serializable
 data class SaleInfo(
