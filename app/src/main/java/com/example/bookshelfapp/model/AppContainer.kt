@@ -1,4 +1,4 @@
-package com.example.bookshelfapp.data
+package com.example.bookshelfapp.model
 
 import com.example.bookshelfapp.network.ApiService
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
@@ -10,7 +10,7 @@ interface AppContainer {
     val repository: Repository
 }
 
-class DefaultAppContainer: AppContainer{
+class DefaultAppContainer: AppContainer {
 
     private val baseurl = "https://www.googleapis.com/books/v1/"
 

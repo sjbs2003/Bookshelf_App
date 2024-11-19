@@ -1,17 +1,14 @@
-package com.example.bookshelfapp.ui.screen.searchScreen
+package com.example.bookshelfapp.viewModel
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
-import com.example.bookshelfapp.BookShelfApplication
-import com.example.bookshelfapp.data.Repository
 import com.example.bookshelfapp.model.Item
+import com.example.bookshelfapp.model.Repository
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -32,7 +29,8 @@ class SearchViewModel(private val repository: Repository) : ViewModel() {
     private val _searchUiState = MutableStateFlow<SearchUiState>(SearchUiState.Loading)
     val searchUiState: StateFlow<SearchUiState> = _searchUiState.asStateFlow()
 
-    var searchType: String by mutableStateOf("intitle") // Default search type
+    var searchType: String by mutableStateOf("title")
+        private set
 
     val searchResults: List<Item>
         get() = (_searchUiState.value as? SearchUiState.Success)?.items ?: emptyList()
@@ -40,18 +38,40 @@ class SearchViewModel(private val repository: Repository) : ViewModel() {
 
     private var currentPage: Int = 0
     private val itemsPerPage = 10
+    private var searchJob: Job? = null
+
+    fun updateSearchType(newType: String) {
+        searchType = newType
+        if (userInput.isNotBlank()){
+            searchBooks()
+        }
+    }
 
     fun updateUserInput(input: String) {
         userInput = input
+        searchJob?.cancel()
+
+        if (input.isBlank()){
+            clearUserInput()
+            return
+        }
+
+        searchJob = viewModelScope.launch {
+            delay(300)
+            searchBooks()
+        }
     }
 
     fun clearUserInput() {
         userInput = ""
+        _searchUiState.value = SearchUiState.Success(emptyList())
+        currentPage = 0
+        searchJob?.cancel()
     }
 
     fun searchBooks() {
         if (userInput.isBlank()) {
-            _searchUiState.value = SearchUiState.Error("Search query cannot be empty")
+            _searchUiState.value = SearchUiState.Success(emptyList())
             return
         }
         _searchUiState.value = SearchUiState.Loading
@@ -59,38 +79,30 @@ class SearchViewModel(private val repository: Repository) : ViewModel() {
         fetchBooks()
     }
 
-    fun loadNextPage() {
-        currentPage++
-        fetchBooks()
-    }
 
     private fun fetchBooks() {
         viewModelScope.launch {
             try {
+                val query = when(searchType) {
+                    "title" -> "intitle: $userInput"
+                    "subject" -> "insubject: $userInput"
+                    "author" -> "inauthor: $userInput"
+                    else -> userInput
+                }
+
                 val response = repository.searchBooks(
                     userInput,
                     searchType,
                     itemsPerPage,
                     currentPage * itemsPerPage
                 )
-                val currentItems = (_searchUiState.value as? SearchUiState.Success)?.items ?: emptyList()
-                _searchUiState.value = SearchUiState.Success(currentItems + response.items)
+                _searchUiState.value = SearchUiState.Success(response.items)
             } catch (e: IOException) {
                 _searchUiState.value = SearchUiState.Error("Network Error: ${e.message}")
             } catch (e: HttpException) {
                 _searchUiState.value = SearchUiState.Error("HTTP error: ${e.code()} ${e.message()}")
             } catch (e: Exception) {
                 _searchUiState.value = SearchUiState.Error("Unexpected error: ${e.message}")
-            }
-        }
-    }
-
-    companion object {
-        val factory: ViewModelProvider.Factory = viewModelFactory {
-            initializer {
-                val application = (this[APPLICATION_KEY] as BookShelfApplication)
-                val repository = application.container.repository
-                SearchViewModel(repository = repository)
             }
         }
     }

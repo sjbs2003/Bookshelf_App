@@ -9,9 +9,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.bookshelfapp.ui.screen.searchScreen.SearchScreen
-import com.example.bookshelfapp.ui.screen.searchScreen.SearchViewModel
+import com.example.bookshelfapp.ui.screen.SearchScreen
+import com.example.bookshelfapp.viewModel.SearchViewModel
 import com.example.bookshelfapp.ui.theme.BookshelfAppTheme
+import com.example.bookshelfapp.viewModel.AppViewModelProvider
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -23,11 +24,10 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    val viewModel: SearchViewModel = viewModel(factory = SearchViewModel.factory)
+                    val viewModel: SearchViewModel = viewModel(factory = AppViewModelProvider.Factory)
 
                     SearchScreen(
-                        viewModel = viewModel,
-                        onSearch = { viewModel.searchBooks() }
+                        viewModel = viewModel
                     )
                 }
             }

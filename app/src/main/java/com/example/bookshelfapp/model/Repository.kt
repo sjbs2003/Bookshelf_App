@@ -1,8 +1,5 @@
-package com.example.bookshelfapp.data
+package com.example.bookshelfapp.model
 
-import com.example.bookshelfapp.model.ApiResponse
-import com.example.bookshelfapp.model.BookshelfResponse
-import com.example.bookshelfapp.model.Item
 import com.example.bookshelfapp.network.ApiService
 
 interface Repository {
