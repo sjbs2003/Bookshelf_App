@@ -1,5 +1,8 @@
 package com.example.bookshelfapp.ui.screen
 
+import android.view.ViewGroup
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,6 +39,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.bookshelfapp.R
@@ -123,7 +127,6 @@ private fun BookDetailContent(
                 error = painterResource(R.drawable.ic_broken_image),
                 placeholder = painterResource(R.drawable.loading_img)
             )
-
             // Basic Info
             Column(
                 modifier = Modifier.weight(1f)
@@ -162,17 +165,21 @@ private fun BookDetailContent(
                 content = book.volumeInfo.categories.joinToString(", ")
             )
         }
-
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Description
-        DetailSection(
-            title = "Description",
-            content = book.volumeInfo.description
+        // Description with WebView
+        Text(
+            text = "Description",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold
         )
-
         Spacer(modifier = Modifier.height(16.dp))
-
+        HtmlContent(
+            htmlContent = book.volumeInfo.description,
+            modifier = modifier
+                .fillMaxWidth()
+                .height(300.dp)
+        )
         // Additional Information
         Card(
             modifier = Modifier.fillMaxWidth(),
@@ -212,6 +219,50 @@ private fun BookDetailContent(
             }
         }
     }
+}
+
+@Composable
+fun HtmlContent(
+    htmlContent: String,
+    modifier: Modifier = Modifier
+) {
+    AndroidView(
+        modifier = modifier,
+        factory = { context ->
+            WebView(context).apply {
+                layoutParams = ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                )
+                webViewClient = WebViewClient()
+                settings.javaScriptEnabled = false
+                settings.defaultFontSize = 16
+            }
+        },
+        update = { webView ->
+            val htmlData = """
+                <html>
+                    <head>
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        <style>
+                            body {
+                                font-family: sans-serif;
+                                font-size: 16px;
+                                line-height: 1.6;
+                                color: #000000;
+                                padding: 8px;
+                                margin: 0;
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        $htmlContent
+                    </body>
+                </html>
+            """.trimIndent()
+            webView.loadDataWithBaseURL(null, htmlData, "text/html", "UTF-8", null)
+        }
+    )
 }
 
 @Composable
