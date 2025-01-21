@@ -41,8 +41,10 @@ class NetworkRepository(
         startIndex: Int
     ): Single<NetworkResult<CombinedSearchResult>> {
         return Single.zip(
-            googleBooksApi.searchBooks("$searchType:$query", maxResults, startIndex),
+            googleBooksApi.searchBooks("$searchType:$query", maxResults, startIndex)
+                .onErrorReturn { ApiResponse("kind", 0, emptyList()) },
             openLibraryApi.searchBooks(query, page = (startIndex / maxResults) + 1, limit = maxResults)
+                .onErrorReturn { OpenLibraryResponse(emptyList(), 0, 0, false) }
         ) { googleResponse, openLibraryResponse ->
             try {
                 NetworkResult.Success(
@@ -56,17 +58,7 @@ class NetworkRepository(
                 NetworkResult.Error(e)
             }
         }.onErrorReturn { error ->
-            when (error) {
-                is IOException -> NetworkResult.Error(
-                    IOException("Network error occurred. Please check your connection.")
-                )
-                is HttpException -> NetworkResult.Error(
-                    Exception("HTTP ${error.code()}: ${error.message()}")
-                )
-                else -> NetworkResult.Error(
-                    Exception("An unexpected error occurred: ${error.message}")
-                )
-            }
+            NetworkResult.Error(error)
         }
     }
 

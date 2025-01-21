@@ -3,6 +3,7 @@ package com.example.bookshelfapp.network
 import com.example.bookshelfapp.model.RetrofitBuilder
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
+import okhttp3.ResponseBody.Companion.toResponseBody
 import java.util.concurrent.TimeUnit
 
 class RetrofitClient(val client: OkHttpClient)
@@ -11,7 +12,7 @@ object ApiServiceFactory {
     private const val TIMEOUT_SECONDS = 30L
     private const val MAX_RETRIES = 3
     private const val GOOGLE_BOOKS_BASE_URL = "https://www.googleapis.com/books/v1/"
-    private const val OPEN_LIBRARY_BASE_URL = "https://openlibrary.org/api/"
+    private const val OPEN_LIBRARY_BASE_URL = "https://openlibrary.org/"
 
     private fun createBaseClient(): RetrofitClient {
         val client = OkHttpClient.Builder()
@@ -40,9 +41,15 @@ object ApiServiceFactory {
         return Interceptor { chain ->
             val response = chain.proceed(chain.request())
             if (!response.isSuccessful) {
+                val errorBody = response.body?.string()
+                // Clone the response before throwing the exception since response.body can only be consumed once
+                val errorResponse = response.newBuilder().body(
+                    (errorBody ?: "").toResponseBody(response.body?.contentType())
+                ).build()
+
                 throw ApiException(
-                    code = response.code,
-                    message = response.message
+                    code = errorResponse.code,
+                    message = errorBody ?: errorResponse.message
                 )
             }
             response
@@ -50,30 +57,12 @@ object ApiServiceFactory {
     }
 
     fun createGoogleBooksService(
-        baseUrl: String = GOOGLE_BOOKS_BASE_URL,
-        apiKey: String? = null
+        baseUrl: String = GOOGLE_BOOKS_BASE_URL
     ): GoogleBooksApiService {
-        val baseClient = createBaseClient()
-        val client = if (apiKey != null) {
-            RetrofitClient(
-                baseClient.client.newBuilder()
-                    .addInterceptor { chain ->
-                        val original = chain.request()
-                        val url = original.url.newBuilder()
-                            .addQueryParameter("key", apiKey)
-                            .build()
-                        chain.proceed(original.newBuilder().url(url).build())
-                    }
-                    .build()
-            )
-        } else {
-            baseClient
-        }
-
         return RetrofitBuilder.buildService(
             serviceClass = GoogleBooksApiService::class.java,
             baseUrl = baseUrl,
-            retrofitClient = client
+            retrofitClient = createBaseClient()
         )
     }
 
@@ -91,4 +80,4 @@ object ApiServiceFactory {
 class ApiException(
     val code: Int,
     override val message: String
-) : Exception(message)
+) : Exception("HTTP $code: $message")

@@ -46,6 +46,7 @@ class SearchViewModel(
     fun toggleApiSource() {
         useGoogleBooks = !useGoogleBooks
         if (userInput.isNotBlank()) {
+            _searchUiState.value = SearchUiState.Loading
             searchBooks()
         }
     }
@@ -53,6 +54,7 @@ class SearchViewModel(
     fun updateSearchType(newType: String) {
         searchType = newType
         if (userInput.isNotBlank()) {
+            _searchUiState.value = SearchUiState.Loading
             searchBooks()
         }
     }
