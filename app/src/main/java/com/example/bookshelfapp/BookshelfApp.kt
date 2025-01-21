@@ -6,6 +6,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.bookshelfapp.ui.screen.BookDetailScreen
 import com.example.bookshelfapp.ui.screen.SearchScreen
@@ -19,9 +20,11 @@ enum class Screens(val route: String) {
 
 @Composable
 fun BookshelfApp(
-    navController: NavHostController,
     modifier: Modifier = Modifier
 ) {
+
+    val navController = rememberNavController()
+
     NavHost(
         navController = navController,
         startDestination = Screens.Search.route,
