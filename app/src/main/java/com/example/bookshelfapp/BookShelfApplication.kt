@@ -1,14 +1,24 @@
 package com.example.bookshelfapp
 
 import android.app.Application
-import com.example.bookshelfapp.model.AppContainer
-import com.example.bookshelfapp.model.DefaultAppContainer
+import org.koin.android.ext.koin.androidContext
+import org.koin.android.ext.koin.androidLogger
+import org.koin.core.context.startKoin
+import org.koin.core.logger.Level
 
 class BookShelfApplication: Application() {
-    lateinit var container: AppContainer
-
     override fun onCreate() {
         super.onCreate()
-        container = DefaultAppContainer()
+
+        startKoin {
+            androidLogger(Level.ERROR)
+            androidContext(this@BookShelfApplication)
+            modules(
+                listOf(
+                    viewModelModule,
+                    networkModule
+                )
+            )
+        }
     }
 }
