@@ -3,6 +3,7 @@ package com.example.bookshelfapp.ui.screen
 import android.view.ViewGroup
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,15 +35,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import coil.compose.AsyncImage
+import coil.compose.AsyncImagePainter
+import coil.compose.SubcomposeAsyncImage
+import coil.compose.SubcomposeAsyncImageContent
 import coil.request.ImageRequest
-import com.example.bookshelfapp.R
 import com.example.bookshelfapp.model.Item
 import com.example.bookshelfapp.viewModel.DetailUiState
 import com.example.bookshelfapp.viewModel.DetailViewModel
@@ -113,7 +115,7 @@ private fun BookDetailContent(
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Book Cover
-            AsyncImage(
+            SubcomposeAsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(book.volumeInfo.imageLinks.thumbnail.replace("http", "https"))
                     .crossfade(true)
@@ -123,10 +125,42 @@ private fun BookDetailContent(
                 modifier = Modifier
                     .width(140.dp)
                     .height(200.dp)
-                    .clip(MaterialTheme.shapes.medium),
-                error = painterResource(R.drawable.ic_broken_image),
-                placeholder = painterResource(R.drawable.loading_img)
-            )
+                    .clip(MaterialTheme.shapes.medium)
+            ) {
+                when (painter.state) {
+                    is AsyncImagePainter.State.Loading -> {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color(0xFF0A1929)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(
+                                color = Color(0xFF2196F3)
+                            )
+                        }
+                    }
+
+                    is AsyncImagePainter.State.Error -> {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color(0xFF0A1929)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "Failed to load image",
+                                color = Color.Gray
+                            )
+                        }
+                    }
+
+                    else -> {
+                        SubcomposeAsyncImageContent()
+                    }
+                }
+            }
+
             // Basic Info
             Column(
                 modifier = Modifier.weight(1f)

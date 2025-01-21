@@ -2,7 +2,6 @@ package com.example.bookshelfapp
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -10,12 +9,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.bookshelfapp.ui.screen.BookDetailScreen
 import com.example.bookshelfapp.ui.screen.SearchScreen
-import com.example.bookshelfapp.viewModel.AppViewModelProvider
-import com.example.bookshelfapp.viewModel.DetailViewModel
-import com.example.bookshelfapp.viewModel.SearchViewModel
+import org.koin.androidx.compose.koinViewModel
+import org.koin.core.parameter.parametersOf
 
-
-enum class Screens(val route : String) {
+enum class Screens(val route: String) {
     Search("search"),
     Detail("detail/{volumeId}")
 }
@@ -26,16 +23,12 @@ fun BookshelfApp(
     modifier: Modifier = Modifier
 ) {
     NavHost(
-    navController = navController,
-    startDestination = Screens.Search.route,
-    modifier = modifier
+        navController = navController,
+        startDestination = Screens.Search.route,
+        modifier = modifier
     ) {
         composable(route = Screens.Search.route) {
-            val searchViewModel: SearchViewModel = viewModel(
-                factory = AppViewModelProvider.Factory
-            )
             SearchScreen(
-                viewModel = searchViewModel,
                 onBookClick = { volumeId ->
                     navController.navigate(
                         Screens.Detail.route.replace("{volumeId}", volumeId)
@@ -49,12 +42,10 @@ fun BookshelfApp(
             arguments = listOf(
                 navArgument("volumeId") { type = NavType.StringType }
             )
-        ) {
-            val detailViewModel: DetailViewModel = viewModel(
-                factory = AppViewModelProvider.Factory
-            )
+        ) { backStackEntry ->
+            val volumeId = backStackEntry.arguments?.getString("volumeId") ?: ""
             BookDetailScreen(
-                viewModel = detailViewModel,
+                viewModel = koinViewModel { parametersOf(volumeId) },
                 onNavigateBack = { navController.navigateUp() }
             )
         }
