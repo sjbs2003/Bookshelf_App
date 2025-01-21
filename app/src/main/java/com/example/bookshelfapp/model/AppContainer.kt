@@ -1,5 +1,6 @@
 package com.example.bookshelfapp.model
 
+import com.example.bookshelfapp.network.RetrofitClient
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
@@ -13,18 +14,14 @@ object RetrofitBuilder {
         coerceInputValues = true
     }
 
-    private val client = OkHttpClient.Builder()
-        .addInterceptor { chain ->
-            val request = chain.request()
-            val response = chain.proceed(request)
-            response
-        }
-        .build()
-
-    fun <T> buildService(serviceClass: Class<T>, baseUrl: String): T {
+    fun <T> buildService(
+        serviceClass: Class<T>,
+        baseUrl: String,
+        retrofitClient: RetrofitClient
+    ): T {
         return Retrofit.Builder()
             .baseUrl(baseUrl)
-            .client(client)
+            .client(retrofitClient.client)
             .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
             .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
             .build()
