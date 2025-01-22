@@ -24,7 +24,7 @@ interface Repository {
         maxResults: Int,
         startIndex: Int
     ): Single<NetworkResult<CombinedSearchResult>>
-    suspend fun getBookDetails(volumeId: String): NetworkResult<Item>
+    suspend fun getBookDetails(volumeId: String, isGoogleBooks: Boolean): NetworkResult<Item>
     suspend fun getBookshelves(userId: String): NetworkResult<BookshelfResponse>
     suspend fun getBookshelfVolumes(userId: String, shelf: String): NetworkResult<ApiResponse>
 }
@@ -62,10 +62,16 @@ class NetworkRepository(
         }
     }
 
-    override suspend fun getBookDetails(volumeId: String): NetworkResult<Item> {
+    override suspend fun getBookDetails(volumeId: String, isGoogleBooks: Boolean): NetworkResult<Item> {
         return try {
-            val response = googleBooksApi.getBookDetails(volumeId).blockingGet()
-            NetworkResult.Success(response)
+            if (isGoogleBooks) {
+                val response = googleBooksApi.getBookDetails(volumeId).blockingGet()
+                NetworkResult.Success(response)
+            } else {
+                val workId = volumeId.removePrefix("/works/")
+                val response = openLibraryApi.getWorkDetails(workId).blockingGet()
+                NetworkResult.Success(mapOpenLibraryWorkToItem(response))
+            }
         } catch (e: Exception) {
             when (e) {
                 is IOException -> NetworkResult.Error(
@@ -79,6 +85,34 @@ class NetworkRepository(
                 )
             }
         }
+    }
+
+    private fun mapOpenLibraryWorkToItem(work: OpenLibraryWork): Item {
+        return Item(
+            id = work.key,
+            volumeInfo = VolumeInfo(
+                title = work.title,
+                authors = work.authors?.map { it.author.key.removePrefix("/authors/") }
+                    ?: listOf("Author not available"),
+                publishedDate = work.firstPublishDate ?: "Publication date not available",
+                description = work.getDescription(),
+                publisher = null,
+                pageCount = null,
+                categories = work.subjects,
+                imageLinks = ImageLinks(
+                    thumbnail = work.covers?.firstOrNull()?.let { coverId ->
+                        OpenLibraryApiService.getCoverUrl(coverId)
+                    } ?: "Image not available"
+                ),
+                language = null,
+                industryIdentifiers = work.links?.map { link ->
+                    IndustryIdentifier(
+                        type = link.type?.key ?: "URL",
+                        identifier = link.url
+                    )
+                }
+            )
+        )
     }
 
     override suspend fun getBookshelves(userId: String): NetworkResult<BookshelfResponse> {

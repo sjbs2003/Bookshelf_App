@@ -1,6 +1,5 @@
 package com.example.bookshelfapp.network
 
-import com.example.bookshelfapp.model.RetrofitBuilder
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.ResponseBody.Companion.toResponseBody

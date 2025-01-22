@@ -14,7 +14,7 @@ import org.koin.core.parameter.parametersOf
 
 enum class Screens(val route: String) {
     Search("search"),
-    Detail("detail/{volumeId}")
+    Detail("detail/{volumeId}/{isGoogleBooks}")
 }
 
 @Composable
@@ -31,9 +31,11 @@ fun BookshelfApp(
     ) {
         composable(route = Screens.Search.route) {
             SearchScreen(
-                onBookClick = { volumeId ->
+                onBookClick = { volumeId, isGoogleBooks ->
                     navController.navigate(
-                        Screens.Detail.route.replace("{volumeId}", volumeId)
+                        Screens.Detail.route
+                            .replace("{volumeId}", volumeId)
+                            .replace("{isGoogleBooks}", isGoogleBooks.toString())
                     )
                 }
             )
@@ -42,12 +44,14 @@ fun BookshelfApp(
         composable(
             route = Screens.Detail.route,
             arguments = listOf(
-                navArgument("volumeId") { type = NavType.StringType }
+                navArgument("volumeId") { type = NavType.StringType },
+                navArgument("isGoogleBooks") { type = NavType.BoolType }
             )
         ) { backStackEntry ->
             val volumeId = backStackEntry.arguments?.getString("volumeId") ?: ""
+            val isGoogleBooks = backStackEntry.arguments?.getBoolean("isGoogleBooks") ?: true
             BookDetailScreen(
-                viewModel = koinViewModel { parametersOf(volumeId) },
+                viewModel = koinViewModel { parametersOf(volumeId, isGoogleBooks) },
                 onNavigateBack = { navController.navigateUp() }
             )
         }

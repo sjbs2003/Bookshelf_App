@@ -56,7 +56,7 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun SearchScreen(
-    onBookClick: (String) -> Unit,
+    onBookClick: (String, Boolean) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: SearchViewModel = koinViewModel()
 ) {
@@ -153,7 +153,9 @@ fun SearchScreen(
                         } else {
                             SearchResults(
                                 items = state.items,
-                                onBookClick = onBookClick
+                                onBookClick = { id ->
+                                    onBookClick(id, viewModel.useGoogleBooks)
+                                }
                             )
                         }
                     }

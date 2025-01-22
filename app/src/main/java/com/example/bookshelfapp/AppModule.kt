@@ -16,5 +16,11 @@ val networkModule = module {
 
 val viewModelModule = module {
     viewModel { SearchViewModel(get()) }
-    viewModel { (volumeId: String) -> DetailViewModel(get(), volumeId) }
+    viewModel { parameters ->
+        DetailViewModel(
+            get(),
+            parameters.get(), // volumeId
+            parameters.get()  // isGoogleBooks
+        )
+    }
 }
