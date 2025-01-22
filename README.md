@@ -1,4 +1,4 @@
-```markdown
+
 # 📚 Bookshelf App
 
 A modern Android application that allows users to search and explore books using both Google Books API and Open Library API. Built as part of the Android Developer Internship assignment for Vijayi WFH Technologies.
@@ -99,4 +99,3 @@ Contributions, issues, and feature requests are welcome!
 - Enhance UI/UX with animations
 - Add bookmarking functionality
 - Implement advanced search filters
-```
