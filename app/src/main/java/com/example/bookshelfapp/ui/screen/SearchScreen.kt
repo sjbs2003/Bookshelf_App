@@ -281,9 +281,15 @@ fun SearchResultItem(
                 .padding(16.dp)
                 .height(100.dp)
         ) {
+            val imageUrl = if (!item.volumeInfo.imageLinks.thumbnail.startsWith("http")) {
+                item.volumeInfo.imageLinks.thumbnail
+            } else {
+                item.volumeInfo.imageLinks.thumbnail.replace("http://", "https://")
+            }
+
             SubcomposeAsyncImage (
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(item.volumeInfo.imageLinks.thumbnail.replace("http", "https"))
+                    .data(imageUrl)
                     .crossfade(true)
                     .build(),
                 contentDescription = "Book cover",

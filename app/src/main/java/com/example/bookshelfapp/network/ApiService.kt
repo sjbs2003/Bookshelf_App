@@ -3,6 +3,7 @@ package com.example.bookshelfapp.network
 import com.example.bookshelfapp.model.*
 import io.reactivex.rxjava3.core.Single
 import retrofit2.http.*
+import java.util.Locale
 
 interface BaseApiService {
     fun handleError(error: Throwable): Single<ApiResponse>
@@ -70,15 +71,17 @@ interface OpenLibraryApiService : BaseApiService {
 
     companion object {
         private const val COVERS_BASE_URL = "https://covers.openlibrary.org/b"
-        private const val SMALL_SIZE = "S"
         private const val MEDIUM_SIZE = "M"
-        private const val LARGE_SIZE = "L"
 
         fun getCoverUrl(coverId: Int, size: String = MEDIUM_SIZE): String {
-            require(size in listOf(SMALL_SIZE, MEDIUM_SIZE, LARGE_SIZE)) {
-                "Invalid size parameter. Use S, M, or L"
-            }
-            return "$COVERS_BASE_URL/id/$coverId-$size.jpg"
+            // Use HTTPS by default and ensure proper URL formatting
+            return "https://covers.openlibrary.org/b/id/$coverId-$size.jpg"
+        }
+
+        fun getAuthorName(authorKey: String): String {
+            // Remove the '/authors/' prefix and format the name
+            return authorKey.removePrefix("/authors/").replace("_", " ")
+                .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.ROOT) else it.toString() }
         }
     }
 }
